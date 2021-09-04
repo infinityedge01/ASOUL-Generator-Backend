@@ -87,7 +87,7 @@ def sample_sequence(model, context, length, n_ctx, tokenizer, temperature=1.0, t
     return generated.tolist()[0]
 
 
-def fast_sample_sequence(model, context, length, temperature=1.0, top_k=30, top_p=0.0, device='cpu'):
+def fast_sample_sequence(model, context, length, repitition_penalty = 1.0, temperature=1.0, top_k=30, top_p=0.0, device='cpu'):
     inputs = torch.LongTensor(context).view(1, -1).to(device)
     if len(context) > 1:
         _, past = model(inputs[:, :-1], None)[:2]
@@ -101,6 +101,8 @@ def fast_sample_sequence(model, context, length, temperature=1.0, top_k=30, top_
             output = model(prev, past_key_values=past)
             output, past = output[:2]
             output = output[-1].squeeze(0) / temperature
+            for id in set(generate):
+                output[id] /= repitition_penalty
             filtered_logits = top_k_top_p_filtering(output, top_k=top_k, top_p=top_p)
             next_token = torch.multinomial(torch.softmax(filtered_logits, dim=-1), num_samples=1)
             generate.append(next_token.item())
@@ -113,7 +115,7 @@ def fast_sample_sequence(model, context, length, temperature=1.0, top_k=30, top_
 def generate(n_ctx, model, context, length, tokenizer, temperature=1, top_k=0, top_p=0.0, repitition_penalty=1.0, device='cpu',
              is_fast_pattern=False):
     if is_fast_pattern:
-        return fast_sample_sequence(model, context, length, temperature=temperature, top_k=top_k, top_p=top_p,
+        return fast_sample_sequence(model, context, length, temperature=temperature, top_k=top_k, top_p=top_p, repitition_penalty=repitition_penalty, 
                                     device=device)
     else:
         return sample_sequence(model, context, length, n_ctx, tokenizer=tokenizer, temperature=temperature, top_k=top_k, top_p=top_p,
@@ -126,7 +128,7 @@ nsamples = 1
 temperature = 0.95
 topk = 0
 topp = 0.85
-repetition_penalty = 10
+repetition_penalty = 1.1
 device = "cpu"
 tokenizer = CpmTokenizer(vocab_file="vocab/chinese_vocab.model")
 eod_id = tokenizer.convert_tokens_to_ids('<eod>')
@@ -149,13 +151,24 @@ def process(prefix):
     generated = 0
     for _ in range(nsamples // batch_size):
         out = generate(
-            n_ctx=n_ctx // 2,
-            model=model,
-            context=context_tokens,
-            length=length,
-            is_fast_pattern=True, tokenizer=tokenizer,
-            temperature=temperature, top_k=topk, top_p=topp, repitition_penalty=repetition_penalty, device=device
-        )
+                n_ctx=n_ctx,
+                model=model,
+                context=context_tokens,
+                length=length,
+                is_fast_pattern=True, tokenizer=tokenizer,
+                temperature=temperature, top_k=topk, top_p=topp, repitition_penalty=repetition_penalty, device=device
+            )
+        cnt = 1
+        while cnt < 5 and len(out) - len(context_tokens) < 15:
+            out = generate(
+                n_ctx=n_ctx,
+                model=model,
+                context=context_tokens,
+                length=length,
+                is_fast_pattern=True, tokenizer=tokenizer,
+                temperature=temperature, top_k=topk, top_p=topp, repitition_penalty=repetition_penalty, device=device
+            )
+            cnt += 1
     text = tokenizer.convert_ids_to_tokens(out)
     #for i, item in enumerate(text[:-1]):  # 确保英文前后有空格
     #    if is_word(item) and is_word(text[i + 1]):

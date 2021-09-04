@@ -37,7 +37,7 @@ def generate():
         ret_dict = {"code": -2, "state": "Prefix is Too Long"}
         return jsonify(ret_dict)
     if asoulgenerate.is_processing:
-        ret_dict = {"code": -3, "state": "Server is Busy"}
+        ret_dict = {"code": -3, "state": "Server is Busy, Please Try Again Later."}
         return jsonify(ret_dict)
     prefix, generated = asoulgenerate.process(prefix)
     db.insert_data(prefix, generated)
