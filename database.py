@@ -26,7 +26,6 @@ class Database:
         db_conn = sqlite3.connect("generated.db")
         db = db_conn.cursor()
         sql_info = list(db.execute(
-            "SELECT time, prefix, generated FROM Data ORDER BY time DESC limit 0,5"))
-        return sql_info
-
-        
+            "SELECT time, prefix, generated FROM Data ORDER BY time DESC limit 0,?", (count,)))
+        total = list(db.execute("SELECT COUNT(time) FROM Data"))
+        return sql_info, total[0][0]

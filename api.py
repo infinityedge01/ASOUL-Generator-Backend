@@ -52,13 +52,13 @@ def query():
     wd = args.get("count")
     if wd != 5 and wd != '5': 
         print('error')
-        ret_dict = {"code": 0, "state": "success", "reply": []}
+        ret_dict = {"code": 0, "state": "success", "reply": [], "count": 0}
         return jsonify(ret_dict)
-    ret = db.query_data(wd)
+    ret, count = db.query_data(wd)
     lst = []
     for x in ret:
         lst.append({'time': x[0], 'prefix': x[1].decode('utf-8'), 'generated' : x[2].decode('utf-8')})
-    ret_dict = {"code": 0, "state": "success", "reply": lst}
+    ret_dict = {"code": 0, "state": "success", "reply": lst, "count" : count}
     # print(ret_dict)
     return jsonify(ret_dict)
 

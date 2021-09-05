@@ -125,7 +125,7 @@ def generate(n_ctx, model, context, length, tokenizer, temperature=1, top_k=0, t
 length = 100
 batch_size = 1
 nsamples = 1
-temperature = 0.95
+temperature = 1
 topk = 0
 topp = 0.85
 repetition_penalty = 1.1
@@ -183,7 +183,7 @@ def process(prefix):
     info = "=" * 40 + " SAMPLE " + str(generated) + " " + "=" * 40 + "\n"
     print(info)
     l = len(context_tokens)
-    text1 = ''.join(text[:l]).replace('▁', '').replace('▂', '').replace("“", "「").replace("”", "」").strip()
-    text2 = ''.join(text[l:]).replace('▁', '').replace('▂', '').replace("“", "「").replace("”", "」").strip()
+    text1 = ''.join(text[:l]).replace('▁', '').replace('▂', '').replace('▃', '').replace("“", "「").replace("”", "」").strip()
+    text2 = ''.join(text[l:]).replace('▁', '').replace('▂', '').replace('▃', '').replace("“", "「").replace("”", "」").strip()
     is_processing = False
     return prefix, text2
