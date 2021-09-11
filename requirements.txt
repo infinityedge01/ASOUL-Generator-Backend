@@ -4,3 +4,5 @@ numpy
 tqdm
 sklearn
 flask
+sentencepiece
+jieba
